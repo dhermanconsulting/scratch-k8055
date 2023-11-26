@@ -14,10 +14,10 @@ class Scratch3YourExtension {
     getInfo () {
         return {
             // unique ID for your extension
-            id: 'yourScratchExtension',
+            id: 'K8055',
 
             // name that will be displayed in the Scratch UI
-            name: 'Demo',
+            name: 'K8055',
 
             // colours to use for your extension blocks
             color1: '#000099',
@@ -81,6 +81,65 @@ class Scratch3YourExtension {
                             type: ArgumentType.STRING
                         }
                     }
+                },
+                {
+                    // name of the function where your block code lives
+                    opcode: 'setDigitalOn',
+
+                    blockType: BlockType.COMMAND,
+                    text: 'Set ouput [CHANNEL] to ON',
+                    terminal: false,
+
+                    filter: [ TargetType.SPRITE, TargetType.STAGE ],
+
+                    arguments: {
+                        CHANNEL: {
+                            // default value before the user sets something
+                            defaultValue: 1,
+                            type: ArgumentType.NUMBER
+                        }
+                    }
+                },
+                {
+                    // name of the function where your block code lives
+                    opcode: 'setDigitalOff',
+
+                    blockType: BlockType.COMMAND,
+                    text: 'Set ouput [CHANNEL] to OFF',
+                    terminal: false,
+
+                    filter: [ TargetType.SPRITE, TargetType.STAGE ],
+
+                    arguments: {
+                        CHANNEL: {
+                            // default value before the user sets something
+                            defaultValue: 1,
+                            type: ArgumentType.NUMBER
+                        }
+                    }
+                },
+                {
+                    // name of the function where your block code lives
+                    opcode: 'getDigitalIn',
+
+                    blockType: BlockType.REPORTER,
+
+                    // label to display on the block
+                    text: 'Get Input [CHANNEL]',
+
+                    // true if this block should end a stack
+                    terminal: false,
+
+                    filter: [ TargetType.SPRITE, TargetType.STAGE ],
+
+                    // arguments used in the block
+                    arguments: {
+                        CHANNEL: {
+                            // default value before the user sets something
+                            defaultValue: 1,
+                            type: ArgumentType.NUMBER
+                        }
+                    }
                 }
             ]
         };
@@ -93,7 +152,73 @@ class Scratch3YourExtension {
      */
     myFirstBlock ({ MY_NUMBER, MY_STRING }) {
         // example implementation to return a string
+
+        fetch("http://127.0.0.1:8080/get_all", {
+            method: "GET" // default, so we can ignore
+        })
+
         return MY_STRING + ' : doubled would be ' + (MY_NUMBER * 2);
+    }
+
+    setDigitalOn ({ CHANNEL }) {
+
+        data = {
+            channel: parseInt(CHANNEL, 10),
+            enabled: true
+        };
+
+          fetch('http://127.0.0.1:8080/set_digital_out', { 
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          })
+
+          return true;
+
+    }
+
+    setDigitalOff ({CHANNEL}) {
+
+        data = {
+            channel: parseInt(CHANNEL, 10),
+            enabled: false
+        };
+
+          fetch('http://127.0.0.1:8080/set_digital_out', { 
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          })
+
+          return true;
+
+    }
+
+    getDigitalIn( {CHANNEL} ) {
+
+        const url = `http://127.0.0.1:8080/get_digital_in/${CHANNEL}`;
+        
+        return fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            return data.enabled;
+        })
+        .catch(error => {
+            console.error('Error fetching digital state:', error);
+            // You can either handle the error here or rethrow it
+            // to be handled by the caller of getDigitalState.
+            throw error;
+        });
+
     }
 }
 
